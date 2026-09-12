@@ -97,6 +97,21 @@ app.post('/api/action/reject', (req, res) => {
   res.json({ handled });
 });
 
+app.post('/api/browser/open', async (req, res) => {
+  try {
+    const sessionId = agentController.currentSessionId || await webcmdBridge.createSession('operator-window');
+    agentController.currentSessionId = sessionId;
+    const result = await webcmdBridge.runScript(
+      sessionId,
+      'try { await page.bringToFront(); } catch (_) {}\nreturn { ready: true, title: await page.title(), url: page.url() };',
+      15
+    );
+    res.json({ ok: true, sessionId, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // WebSocket Handling
 wss.on('connection', ws => {
   console.log('📡 Dashboard client connected to WebSocket.');

@@ -327,12 +327,49 @@ export class WebcmdBridge extends EventEmitter {
       }
     }
 
-    // 3. Write code to isolated temp file
+    // 3. Write code to isolated temp file with atomic screen snapshot capture
     const filename = `script_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.js`;
     const filepath = path.join(this.tempDir, filename);
 
     try {
-      const wrappedScript = `try { await page.bringToFront(); } catch (_) {}\n${scriptCode}`;
+      const wrappedScript = `
+try { await page.bringToFront(); } catch (_) {}
+
+async function __user_exec(page) {
+${scriptCode}
+}
+
+let __user_result = null;
+let __exec_err = null;
+try {
+  __user_result = await __user_exec(page);
+} catch (err) {
+  __exec_err = err.message || String(err);
+}
+
+let __screen_b64 = null;
+try {
+  const __buf = await page.screenshot({ type: 'jpeg', quality: 45 });
+  const __bytes = new Uint8Array(__buf);
+  let __bin = '';
+  const __chunk = 8192;
+  for (let __i = 0; __i < __bytes.length; __i += __chunk) {
+    __bin += String.fromCharCode.apply(null, __bytes.subarray(__i, __i + __chunk));
+  }
+  __screen_b64 = btoa(__bin);
+} catch (_) {}
+
+if (__exec_err) {
+  throw new Error(__exec_err);
+}
+
+return {
+  __atomic_result: __user_result,
+  __atomic_screenshot: __screen_b64,
+  __atomic_url: page.url(),
+  __atomic_title: await page.title()
+};
+`;
       await fs.writeFile(filepath, wrappedScript, 'utf8');
 
       // 4. Execute via cross-spawn with argument array
@@ -352,6 +389,18 @@ export class WebcmdBridge extends EventEmitter {
         parsed = JSON.parse(stdout);
       } catch {
         parsed = { ok: true, raw: stdout };
+      }
+
+      // Unpack atomic screenshot and emit real-time screen_snapshot event
+      if (parsed.result && parsed.result.__atomic_screenshot) {
+        const snapEvent = {
+          image: `data:image/jpeg;base64,${parsed.result.__atomic_screenshot}`,
+          url: parsed.result.__atomic_url || '',
+          title: parsed.result.__atomic_title || '',
+          sessionId
+        };
+        this.emit('screen_snapshot', snapEvent);
+        parsed.result = parsed.result.__atomic_result;
       }
 
       return parsed;

@@ -29,6 +29,11 @@ export class AgentController {
         message: `🛡️ SECURITY POLICY VIOLATION: ${event.reason}`
       });
     });
+
+    // Wire real-time visual screen snapshots from bridge to dashboard
+    webcmdBridge.on('screen_snapshot', (event) => {
+      this.emit('screen_snapshot', event);
+    });
   }
 
   onEvent(listener) {

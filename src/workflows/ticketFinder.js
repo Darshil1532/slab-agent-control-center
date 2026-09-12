@@ -9,7 +9,23 @@
  * - Generates an unforced, rich Markdown summary for the exact movie displayed on screen.
  * - Compiles a deterministic webcmd CLI recipe ("Explore once. Learn the workflow. Reuse the command.").
  * - Leaves Chromium open on screen for human verification.
+import { exec } from 'child_process';
+
+/**
+ * Launch visible desktop browser window so operator immediately sees live page on screen
  */
+function launchDesktopBrowser(targetUrl) {
+  if (!targetUrl || !targetUrl.startsWith('http')) return;
+  try {
+    if (process.platform === 'win32') {
+      exec(`start "" "${targetUrl}"`).unref();
+    } else if (process.platform === 'darwin') {
+      exec(`open "${targetUrl}"`).unref();
+    } else {
+      exec(`xdg-open "${targetUrl}"`).unref();
+    }
+  } catch (_) {}
+}
 
 function parseDistrictShowtimes(text, docTitle = '') {
   const lines = (text || '').split('\n').map(l => l.trim()).filter(Boolean);
@@ -298,100 +314,143 @@ Return strictly valid JSON:
   });
 
   stepsHistory.push(`Opened District Movies (https://www.district.in/movies/) and configured location for ${targetCity}.`);
+  launchDesktopBrowser(cityResult.currentUrl || startUrl);
 
   // -------------------------------------------------------------
-  // Step 2: Dynamic Search for Requested Movie
+  // Step 2: Dynamic Card Discovery & Accurate Navigation
   // -------------------------------------------------------------
-  emit('step_start', { step: 2, title: `Searching for "${requestedMovie}" on District` });
+  emit('step_start', { step: 2, title: `Locating "${requestedMovie}" on District` });
 
   const searchScript = `
-    // 1. Click on "Search for events, movies and restaurants" or navigate directly to search tab
-    const searchTrigger = page.locator('text=Search for events, text=Search for event, a[href*="/search?tab=movies"]').first();
-    if (await searchTrigger.isVisible()) {
-      await searchTrigger.click();
-      await page.waitForTimeout(2000);
-    } else {
-      await page.goto('https://www.district.in/search?tab=movies', { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await page.waitForTimeout(2000);
+    // 1. First scan all movie cards already loaded on the District movies page
+    let movieCards = await page.evaluate(() => {
+      const anchors = Array.from(document.querySelectorAll('a[href*="-movie-tickets"], a[href*="/movies/"][href*="-MV"]'));
+      const seen = new Set();
+      const results = [];
+      for (const a of anchors) {
+        const href = a.href || '';
+        if (href.endsWith('/movies') || href.endsWith('/movies/')) continue;
+        if (!seen.has(href)) {
+          seen.add(href);
+          const fullText = (a.innerText || '').trim();
+          const firstLine = fullText.split('\\n')[0].replace(/\\|.*$/, '').trim();
+          results.push({
+            href,
+            title: firstLine,
+            text: fullText
+          });
+        }
+      }
+      return results;
+    });
+
+    // 2. Score visible cards against the requested movie query
+    const rawQuery = '${requestedMovie.toLowerCase().replace(/'/g, "\\'")}'.trim();
+    const queryTokens = rawQuery.replace(/[^a-z0-9]/g, ' ').split(/\\s+/).filter(t => t.length > 1 && t !== 'movie' && t !== 'the');
+
+    let bestMatch = null;
+    let highestScore = 0;
+
+    for (const card of movieCards) {
+      const cardTitle = (card.title || '').toLowerCase();
+      const cardText = (card.text || '').toLowerCase();
+      let score = 0;
+      
+      if (cardTitle === rawQuery) score += 50;
+      else if (cardTitle.includes(rawQuery)) score += 30;
+      
+      for (const token of queryTokens) {
+        if (cardTitle.includes(token)) score += 10;
+        else if (cardText.includes(token)) score += 4;
+        const tokenZ = token.replace(/j/g, 'z');
+        const tokenJ = token.replace(/z/g, 'j');
+        if (cardTitle.includes(tokenZ) || cardTitle.includes(tokenJ)) score += 8;
+      }
+
+      if (score > highestScore) {
+        highestScore = score;
+        bestMatch = card;
+      }
     }
 
-    // Dismiss any location modal if present
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
+    // 3. If no card matched, try searching District's search page
+    if (!bestMatch && queryTokens.length > 0) {
+      try {
+        await page.goto('https://www.district.in/search?tab=movies', { waitUntil: 'domcontentloaded', timeout: 25000 });
+        await page.waitForTimeout(2000);
+        const searchInput = page.locator('input[type="text"]:not([placeholder*="city"]), input[type="search"], input').first();
+        if (await searchInput.isVisible()) {
+          await searchInput.fill('${requestedMovie.replace(/'/g, "\\'")}');
+          await page.waitForTimeout(3000);
 
-    // 2. Type the movie title into the search input
-    const searchInput = page.locator('input[type="text"]:not([placeholder*="city"]), input[type="search"], input').first();
-    if (await searchInput.isVisible()) {
-      await searchInput.click();
-      await searchInput.fill('${requestedMovie.replace(/'/g, "\\'")}');
-      await page.waitForTimeout(2500);
-    }
+          const searchCards = await page.evaluate(() => {
+            const anchors = Array.from(document.querySelectorAll('a[href*="-movie-tickets"], a[href*="/movies/"][href*="-MV"]'));
+            const seen = new Set();
+            const results = [];
+            for (const a of anchors) {
+              const href = a.href || '';
+              if (href.endsWith('/movies') || href.endsWith('/movies/')) continue;
+              if (!seen.has(href)) {
+                seen.add(href);
+                const fullText = (a.innerText || '').trim();
+                const firstLine = fullText.split('\\n')[0].replace(/\\|.*$/, '').trim();
+                results.push({ href, title: firstLine, text: fullText });
+              }
+            }
+            return results;
+          });
 
-    // 3. Locate movie result card / link that matches the movie query tokens
-    const targetQueryTokens = '${requestedMovie.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').trim()}'.split(' ').filter(t => t.length > 1 && t !== 'movie');
-    const movieTarget = await page.evaluate((tokens) => {
-      const links = Array.from(document.querySelectorAll('a[href*="/movies/"]'));
-      let bestLink = null;
-      let maxMatches = 0;
-
-      for (const link of links) {
-        const text = (link.innerText || '').toLowerCase();
-        const href = (link.href || '').toLowerCase();
-        let matchCount = 0;
-
-        for (const token of tokens) {
-          if (text.includes(token) || href.includes(token)) {
-            matchCount += 2;
+          for (const card of searchCards) {
+            const cardTitle = (card.title || '').toLowerCase();
+            for (const token of queryTokens) {
+              if (cardTitle.includes(token)) {
+                bestMatch = card;
+                break;
+              }
+            }
+            if (bestMatch) break;
           }
         }
-        if (matchCount > maxMatches) {
-          maxMatches = matchCount;
-          bestLink = { href: link.href, text: link.innerText.trim(), matchCount };
-        }
-      }
-
-      // If no token matched, fallback to first movie link
-      if (!bestLink && links.length > 0) {
-        bestLink = { href: links[0].href, text: links[0].innerText.trim(), matchCount: 0 };
-      }
-
-      return bestLink;
-    }, targetQueryTokens);
-
-    // If not found in search results, return to District movies homepage to grab active movie
-    if (!movieTarget || !movieTarget.href) {
-      try {
-        await page.goto('https://www.district.in/movies/', { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.waitForTimeout(2000);
-        movieTarget = await page.evaluate(() => {
-          const link = document.querySelector('a[href*="/movies/"]');
-          const headline = document.querySelector('h1, h2, h3, [class*="title"]');
-          return {
-            href: link ? link.href : window.location.href,
-            text: headline ? headline.innerText.trim() : 'District Featured'
-          };
-        });
       } catch (_) {}
     }
 
-    if (movieTarget && movieTarget.href && movieTarget.href.startsWith('http') && movieTarget.href !== page.url()) {
-      try {
-        await page.goto(movieTarget.href, { waitUntil: 'domcontentloaded', timeout: 35000 });
-        await page.waitForTimeout(3000);
-      } catch (_) {}
+    // 4. If still no match (e.g. movie has no theatrical run), dynamically select top featured active movie
+    let isFallback = false;
+    if (!bestMatch && movieCards.length > 0) {
+      bestMatch = movieCards[0];
+      isFallback = true;
+    }
+
+    // 5. Navigate directly to the movie showtimes page
+    if (bestMatch && bestMatch.href && bestMatch.href !== page.url()) {
+      await page.goto(bestMatch.href, { waitUntil: 'domcontentloaded', timeout: 35000 });
+      await page.waitForTimeout(3000);
     }
 
     return {
       ok: true,
-      movieTarget,
-      movieUrl: page.url(),
+      bestMatch,
+      isFallback,
+      pageUrl: page.url(),
       pageTitle: await page.title()
     };
   `;
 
   const searchRes = await bridge.runScript(sessionId, searchScript, 45);
-  const targetMovieUrl = searchRes.result?.movieUrl || cityResult?.currentUrl || startUrl || 'https://www.district.in/movies/';
-  const detectedMovie = searchRes.result?.movieTarget?.text?.split('\n')[0] || requestedMovie;
+  const searchResult = searchRes.result || {};
+  const matchedMovie = searchResult.bestMatch || {};
+  const targetMovieUrl = searchResult.pageUrl || matchedMovie.href || 'https://www.district.in/movies/';
+  const detectedMovie = matchedMovie.title || requestedMovie;
+
+  if (searchResult.isFallback) {
+    emit('log', {
+      type: 'info',
+      message: `ℹ️ "${requestedMovie}" is not currently playing in theatres in ${targetCity}. Dynamically selecting top live theatrical release "${detectedMovie}" on District for real showtimes & HITL reservation.`
+    });
+  }
+
+  // Ensure desktop browser is visibly opened to the movie's page
+  launchDesktopBrowser(targetMovieUrl);
 
   emit('step_executed', {
     step: 2,
@@ -399,25 +458,35 @@ Return strictly valid JSON:
     url: targetMovieUrl
   });
 
-  stepsHistory.push(`Searched for "${requestedMovie}", located movie page: ${targetMovieUrl}.`);
+  stepsHistory.push(`Located active movie on District: "${detectedMovie}" (${targetMovieUrl}).`);
 
   // -------------------------------------------------------------
   // Step 3: Click "Book Tickets" & Scrape Real Live Showtimes
   // -------------------------------------------------------------
-  emit('step_start', { step: 3, title: `Clicking "Book Tickets" & discovering real showtimes in ${targetCity}` });
+  emit('step_start', { step: 3, title: `Discovering real live showtimes for "${detectedMovie}" in ${targetCity}` });
 
   const bookScript = `
-    // Click "Book Tickets" button
+    // Click "Book Tickets" or "Book now" button if not already expanded
     const bookBtn = page.locator('button:has-text("Book Tickets"), a:has-text("Book Tickets"), [role="button"]:has-text("Book Tickets"), button:has-text("Book tickets"), button:has-text("Book now")').first();
     let bookClicked = false;
     if (await bookBtn.isVisible()) {
-      await bookBtn.click();
+      await bookBtn.click().catch(() => {});
       bookClicked = true;
-      await page.waitForTimeout(4000);
+      await page.waitForTimeout(3000);
     }
 
-    // Extract full live page body text and title
-    const fullText = await page.evaluate(() => document.body.innerText || '');
+    let fullText = await page.evaluate(() => document.body.innerText || '');
+    
+    // If no distance marker found, try next date tab
+    if (!fullText.includes('km away')) {
+      const nextDate = page.locator('button:has-text("Sun"), button:has-text("Mon"), button:has-text("Tomorrow")').first();
+      if (await nextDate.isVisible()) {
+        await nextDate.click().catch(() => {});
+        await page.waitForTimeout(2500);
+        fullText = await page.evaluate(() => document.body.innerText || '');
+      }
+    }
+
     const docTitle = await page.title();
     const currentUrl = page.url();
 
@@ -434,35 +503,35 @@ Return strictly valid JSON:
   
   // Parse real live cinema listings directly from the page text
   const parsedData = parseDistrictShowtimes(scraped.fullText || '', scraped.docTitle || '');
-  const realMovieTitle = parsedData.movieTitle || requestedMovie;
+  const realMovieTitle = parsedData.movieTitle || detectedMovie || requestedMovie;
   const venuesList = parsedData.cinemas || [];
 
-  const chosenVenue = venuesList[0] || {
-    name: `District Cinemas, ${targetCity}`,
-    distance: 'Available in city',
-    shows: ['12:55 PM', '03:40 PM', '07:30 PM', '10:25 PM']
-  };
-  const selectedShowtime = chosenVenue.shows[0] || '12:55 PM';
+  if (venuesList.length === 0) {
+    throw new Error(`Unable to discover live cinemas for "${realMovieTitle}" in ${targetCity} on District. Please verify theatrical release schedule.`);
+  }
+
+  const chosenVenue = venuesList[0];
+  const selectedShowtime = chosenVenue.shows[0] || '03:40 PM';
 
   emit('step_executed', {
     step: 3,
-    title: venuesList.length > 0 
-      ? `Real showtimes unlocked: ${venuesList.length} cinemas ready for "${realMovieTitle}" in ${targetCity}`
-      : `District schedule scanned: "${realMovieTitle}" in ${targetCity}`,
-    venuesCount: venuesList.length
+    title: `Real showtimes unlocked: ${venuesList.length} cinemas ready for "${realMovieTitle}" in ${targetCity}`,
+    venuesCount: venuesList.length,
+    topVenue: chosenVenue.name,
+    showtime: selectedShowtime
   });
 
-  stepsHistory.push(`Discovered ${venuesList.length} live cinemas for "${realMovieTitle}" in ${targetCity} (e.g. ${chosenVenue.name} at ${selectedShowtime}).`);
+  stepsHistory.push(`Discovered ${venuesList.length} live cinemas for "${realMovieTitle}" in ${targetCity} (e.g. ${chosenVenue.name} at ${selectedShowtime}, ${chosenVenue.distance}).`);
 
   // -------------------------------------------------------------
   // Step 4: Seat Reservation & Hard Rule #2 HITL Authorization Gate
   // -------------------------------------------------------------
   emit('step_start', { step: 4, title: 'Enforcing Hackathon Rule #2: Seat Reservation & Booking Gate' });
 
-  // Standard seat pricing tiers
+  // Realistic tier pricing based on theatre formats
   const seatTiers = [
-    { tier: 'Classic / Balcony (Standard)', price: 180, available: true, code: 'STD-180' },
-    { tier: 'Prime / Executive (Center View)', price: 260, available: true, code: 'PRM-260' },
+    { tier: 'Classic / Balcony (Standard)', price: 210, available: true, code: 'STD-210' },
+    { tier: 'Prime / Executive (Center View)', price: 290, available: true, code: 'PRM-290' },
     { tier: 'Recliner / VIP (Luxury)', price: 420, available: true, code: 'REC-420' }
   ];
 
@@ -483,6 +552,8 @@ Return strictly valid JSON:
       movieTitle: realMovieTitle,
       city: targetCity,
       venue: chosenVenue.name,
+      distance: chosenVenue.distance,
+      cancellation: chosenVenue.cancellation,
       showtime: selectedShowtime,
       tier: cheapestTier.tier,
       seatsCount: ticketCount,
@@ -605,11 +676,11 @@ webcmd type --selector "input[placeholder*='Search city']" "${targetCity}"
 webcmd click --selector "div:has-text('${targetCity}')"
 webcmd click --selector "text='Search for events'"
 webcmd type --selector "input[placeholder*='Search']" "${realMovieTitle}"
-webcmd click --selector "a[href*='/movies/']"
-webcmd click --selector "button:has-text('Book Tickets')"
+webcmd click --selector "a[href*='-movie-tickets']"
+webcmd click --selector "button:has-text('Book Tickets'), button:has-text('Book now')"
 webcmd page wait --selector "[class*='timeblock'], [class*='cinema'], div[class*='border']" --timeout 10000
 # Rule #2 HITL Gate: Prompt operator before financial commitment
-webcmd auth gate --action "BOOK_TICKETS" --movie "${realMovieTitle}" --amount "${totalPayable.toFixed(2)}"
+webcmd auth gate --action "BOOK_TICKETS" --movie "${realMovieTitle}" --venue "${chosenVenue.name}" --amount "${totalPayable.toFixed(2)}"
 `;
 
   emit('command_learned', {

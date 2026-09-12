@@ -1,5 +1,10 @@
 # SLAB Agent Control Center (VIT Bhopal Edition)
 
+[![CI](https://github.com/Darshil1532/slab-agent-control-center/actions/workflows/ci.yml/badge.svg)](https://github.com/Darshil1532/slab-agent-control-center/actions/workflows/ci.yml)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Security & AST Sandbox](https://img.shields.io/badge/security-AST%20Hardened-blue.svg)](SECURITY.md)
+[![Tests](https://img.shields.io/badge/tests-30%20passing-brightgreen.svg)](tests/)
+
 > **"Explore once. Learn the workflow. Reuse the command."**
 
 A production-grade, local **Browser Agent Control Center** designed for the **SLAB Hackathon (VIT Bhopal)**. Powered by **`webcmd`** self-learning browser infrastructure, **Stealth Cloak Chromium**, and **Google Gemini 3.1 Flash Lite**.
@@ -98,27 +103,34 @@ Navigate to:
 
 ### 🔧 Handy Troubleshooting & Test Commands
 
-* **Clean up any orphaned Chrome instances:**
+* **Run Automated Test Suite (30 unit & integration tests):**
   ```powershell
-  npm run clean:cloak
-  # or: node scripts/kill_cloak.js
+  npm test                 # Run combined Security Sandbox and REST API test suites
+  npm run test:security    # Run 21-point AST Policy & Injection Hardening tests
+  npm run test:api         # Run REST API integration tests
+  npm run lint             # Run syntax check across all JavaScript files
   ```
+
 * **Run Autonomous Workflow Tests:**
   ```powershell
-  npm test                 # Run Universal Ticket Finder test
   npm run test:all         # Run full suite across all 5 core workflows
+  npm run test:ticket      # Universal Ticket Finder test
   npm run test:arbitrage   # Amazon vs Flipkart price comparison test
   npm run test:github      # GitHub repository deep-dive test
   npm run test:jobs        # Job matcher & application test
   npm run test:briefing    # Executive daily briefing test
   ```
-* **Verify Webcmd Browser Connection:**
+
+* **Browser Window Control:**
   ```powershell
-  webcmd doctor
+  npm run open:browser     # Directly open or bring Cloak Chromium to foreground
+  npm run status:cloak     # Check Cloak Chromium process status
+  npm run clean:cloak      # Terminate any lingering background Chrome instances
   ```
-* **Restart the Webcmd Background Daemon:**
+
+* **Docker Container Execution:**
   ```powershell
-  webcmd daemon restart
+  docker compose up --build
   ```
 
 ---

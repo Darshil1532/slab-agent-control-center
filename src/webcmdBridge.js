@@ -227,6 +227,52 @@ export class WebcmdBridge extends EventEmitter {
   }
 
   /**
+   * Capture a live visual screenshot from the browser session as a data URL.
+   */
+  async captureScreenshot(sessionId, quality = 45) {
+    if (!sessionId) return { ok: false, error: 'No active session' };
+    assertSafeString(sessionId, { maxLen: 128, field: 'Session ID' });
+
+    try {
+      const q = Math.min(Math.max(Number(quality) || 45, 20), 80);
+      const script = `
+        try {
+          const buf = await page.screenshot({ type: 'jpeg', quality: ${q} });
+          const bytes = new Uint8Array(buf);
+          let binary = '';
+          const chunk = 8192;
+          for (let i = 0; i < bytes.length; i += chunk) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+          }
+          return {
+            ok: true,
+            title: await page.title(),
+            url: page.url(),
+            data: btoa(binary)
+          };
+        } catch (err) {
+          return { ok: false, error: err.message };
+        }
+      `;
+      const res = await this.runScript(sessionId, script, 15);
+      if (res.ok && res.result?.ok && res.result?.data) {
+        return {
+          ok: true,
+          dataUrl: `data:image/jpeg;base64,${res.result.data}`,
+          title: res.result.title || '',
+          url: res.result.url || ''
+        };
+      }
+      return {
+        ok: false,
+        error: res.result?.error || res.error || 'Failed to capture screenshot'
+      };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  }
+
+  /**
    * Execute Playwright code inside the session with static AST policy check and SSRF guardrails.
    * Returns structured output, page info, snapshotDiff, and execution timings.
    */
@@ -295,6 +341,7 @@ export class WebcmdBridge extends EventEmitter {
         'browser', 'run',
         '--file', filepath,
         '--timeout', String(boundedTimeout),
+        '--max-output', '1000000',
         '-f', 'json'
       ], {
         maxBuffer: this.maxBufferBytes

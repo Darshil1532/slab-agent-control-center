@@ -48,6 +48,7 @@ class AgentDashboard {
       btnLaunch: document.getElementById('btn-launch'),
       btnStop: document.getElementById('btn-stop-mission'),
       btnClear: document.getElementById('btn-clear-logs'),
+      btnOpenBrowser: document.getElementById('btn-open-browser'),
       missionPrompt: document.getElementById('mission-prompt'),
       missionUrl: document.getElementById('mission-url'),
       urlGroup: document.getElementById('url-group'),
@@ -146,6 +147,29 @@ class AgentDashboard {
     this.els.btnLaunch.addEventListener('click', () => this.launchMission());
     this.els.btnStop.addEventListener('click', () => this.stopMission());
     this.els.btnClear.addEventListener('click', () => this.clearFeed());
+
+    if (this.els.btnOpenBrowser) {
+      this.els.btnOpenBrowser.addEventListener('click', async () => {
+        const span = this.els.btnOpenBrowser.querySelector('span');
+        const origText = span ? span.innerText : 'Open Chrome';
+        try {
+          this.els.btnOpenBrowser.disabled = true;
+          if (span) span.innerText = 'Opening...';
+          const res = await fetch('/api/browser/open', { method: 'POST' });
+          const data = await res.json();
+          if (data.ok) {
+            this.appendLog('system', `🌐 Cloak Chromium focused/ready (Session: ${data.sessionId || 'active'})`);
+          } else {
+            this.appendLog('error', `❌ Failed to open Chrome: ${data.error}`);
+          }
+        } catch (e) {
+          this.appendLog('error', `❌ Error calling browser API: ${e.message}`);
+        } finally {
+          this.els.btnOpenBrowser.disabled = false;
+          if (span) span.innerText = origText;
+        }
+      });
+    }
 
     // HITL Approvals
     this.els.btnHitlApprove.addEventListener('click', () => {

@@ -3,12 +3,21 @@ dotenv.config();
 
 export class GeminiClient {
   constructor() {
-    this.apiKey = process.env.GEMINI_API_KEY || 'AIzaSyDIJeFSCF7TfkhCwrxaN4REU1Y38-AAAG0';
     this.model = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
-    this.endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+  }
+
+  get apiKey() {
+    return process.env.GEMINI_API_KEY || '';
+  }
+
+  get endpoint() {
+    return `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
   }
 
   async generateContent(prompt, systemInstruction = '', jsonFormat = true) {
+    if (!this.apiKey) {
+      throw new Error('GEMINI_API_KEY is not configured! Please provide a valid Gemini API key in your .env file or environment variables.');
+    }
     const payload = {
       contents: [
         {

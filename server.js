@@ -161,14 +161,24 @@ wss.on('connection', ws => {
 
 // Start Server
 async function start() {
-  await webcmdBridge.init();
+  const doctor = await webcmdBridge.init();
+
+  let daemonStatusLine;
+  if (!doctor.installed) {
+    daemonStatusLine = '❌ webcmd CLI: NOT INSTALLED! Run: npm install or npm install -g @agentrhq/webcmd';
+  } else if (doctor.ok && doctor.daemonRunning) {
+    daemonStatusLine = `🔌 webcmd Daemon: Connected on Port ${process.env.WEBCMD_PORT || 9777}`;
+  } else {
+    daemonStatusLine = `⚠️ webcmd Daemon: Offline (${doctor.error || 'Run: webcmd daemon restart'})`;
+  }
+
   server.listen(PORT, () => {
     console.log(`
 ========================================================================
 🚀 SLAB AGENT CONTROL CENTER is running!
 🌐 URL: http://localhost:${PORT}
 🤖 LLM: ${process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite'}
-🔌 webcmd Daemon: Connected on Port ${process.env.WEBCMD_PORT || 9777}
+${daemonStatusLine}
 🛡️ HITL Approval Guard: ACTIVE (Hackathon Rule #2 Enforced)
 ========================================================================
     `);

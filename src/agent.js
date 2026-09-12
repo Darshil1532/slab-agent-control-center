@@ -79,6 +79,16 @@ export class AgentController {
         }
       }
 
+      // Check if webcmd CLI is installed before starting mission
+      const doctor = await webcmdBridge.checkDoctor();
+      if (!doctor.installed || (doctor.error && doctor.error.includes('ENOENT'))) {
+        const errorMsg = "webcmd CLI is not installed or not found in PATH! Please run 'npm install' or 'npm install -g @agentrhq/webcmd' (requires Node 20+).";
+        this.emit('log', { type: 'error', message: `❌ ${errorMsg}` });
+        this.isRunning = false;
+        this.emit('status_change', { status: 'IDLE', workflow });
+        return { success: false, error: errorMsg };
+      }
+
       // Rotate previous session if starting a new mission
       if (this.currentSessionId) {
         await webcmdBridge.closeSession(this.currentSessionId).catch(() => {});

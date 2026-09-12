@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import spawn from 'cross-spawn';
 import { assertSafeString, validateNavigationUrl } from './codeSandbox.js';
+import { resolveWebcmdBinary } from './webcmdBridge.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,11 +52,11 @@ export class RecipeManager {
         await validateNavigationUrl(recipeData.targetUrl);
 
         await new Promise((resolve) => {
-          const child = spawn('webcmd', [
+          const child = spawn(resolveWebcmdBinary(), [
             'site', 'endpoint', 'set', cleanDomain, cleanAction,
             '--url', recipeData.targetUrl,
             '--method', 'GET'
-          ], { windowsHide: true });
+          ], { windowsHide: false });
           child.on('close', resolve);
           child.on('error', resolve);
         });

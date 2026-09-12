@@ -9,8 +9,21 @@ import {
   logSecurityBlock
 } from './codeSandbox.js';
 
+import syncFs from 'fs';
+
 // Ensure webcmd dispatches browser commands in the visible foreground
 process.env.WEBCMD_WINDOW = process.env.WEBCMD_WINDOW || 'foreground';
+
+/**
+ * Resolves webcmd binary from local node_modules/.bin first, falling back to global command.
+ */
+export function resolveWebcmdBinary() {
+  const localBin = path.join(process.cwd(), 'node_modules', '.bin', process.platform === 'win32' ? 'webcmd.cmd' : 'webcmd');
+  if (syncFs.existsSync(localBin)) {
+    return localBin;
+  }
+  return 'webcmd';
+}
 
 export class WebcmdBridge extends EventEmitter {
   constructor(options = {}) {
@@ -31,8 +44,9 @@ export class WebcmdBridge extends EventEmitter {
    */
   execWebcmd(args, options = {}) {
     return new Promise((resolve, reject) => {
+      const bin = resolveWebcmdBinary();
       const maxBuffer = options.maxBuffer || this.maxBufferBytes;
-      const child = spawn('webcmd', args, {
+      const child = spawn(bin, args, {
         env: { ...process.env, WEBCMD_WINDOW: 'foreground', ...options.env },
         windowsHide: false,
         ...options
@@ -84,14 +98,19 @@ export class WebcmdBridge extends EventEmitter {
       const isOk = stdout.includes('Everything looks good!') || stdout.includes('[OK] Daemon');
       return {
         ok: isOk,
+        installed: true,
         details: stdout.trim(),
         daemonRunning: stdout.includes('[OK] Daemon'),
         cloakConnected: stdout.includes('[OK] Runtime: cloak connected')
       };
     } catch (err) {
+      const isEnoent = err.code === 'ENOENT' || (err.message && err.message.includes('ENOENT'));
       return {
         ok: false,
-        error: err.message,
+        installed: !isEnoent,
+        error: isEnoent
+          ? "webcmd CLI is not installed or not found. Please run 'npm install' or 'npm install -g @agentrhq/webcmd' (requires Node 20+)."
+          : err.message,
         details: err.stdout || ''
       };
     }

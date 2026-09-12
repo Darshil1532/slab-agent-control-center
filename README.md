@@ -58,14 +58,16 @@ cd "c:\Users\darsh\OneDrive\Desktop\slab hackthon"
 ```
 
 ### Step 2: Ensure Dependencies & .env
-Make sure dependencies are installed:
+Make sure dependencies (including `@agentrhq/webcmd`) are installed:
 ```powershell
 npm install
 ```
+*(Optional: Install webcmd globally for system-wide terminal usage: `npm install -g @agentrhq/webcmd` — requires Node.js 20+).*
+
 Verify `.env` has your configuration:
 ```env
 PORT=3000
-GEMINI_API_KEY=AIzaSy...
+GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_MODEL=gemini-3.1-flash-lite
 WEBCMD_PORT=9777
 WEBCMD_WINDOW=foreground
@@ -74,9 +76,13 @@ WEBCMD_WINDOW=foreground
 ### Step 3: Start the Webcmd Browser Daemon
 Restart the daemon in your interactive terminal to ensure Cloak Chromium opens visibly:
 ```powershell
+# Using global CLI:
 webcmd daemon restart
+
+# Or using local npx:
+npx webcmd daemon restart
 ```
-*(Optional sanity check: `webcmd doctor` should show all `[OK]` status).*
+*(Sanity check: `npx webcmd doctor` will verify daemon, runtime, and browser binary status).*
 
 ### Step 4: Start the Control Center Server
 ```powershell

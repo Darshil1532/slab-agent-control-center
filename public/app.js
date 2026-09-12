@@ -235,9 +235,22 @@ class AgentDashboard {
     try {
       const res = await fetch('/api/status');
       const data = await res.json();
-      if (data.daemon?.daemonRunning) {
-        const pulse = document.querySelector('#status-daemon .chip-pulse');
+      const pulse = document.querySelector('#status-daemon .chip-pulse');
+      const label = document.querySelector('#status-daemon .chip-label');
+      const chip = document.getElementById('status-daemon');
+
+      if (data.daemon?.installed === false) {
+        if (pulse) pulse.className = 'chip-pulse red';
+        if (label) label.innerText = 'webcmd missing';
+        if (chip) chip.title = "webcmd CLI is not installed. Run 'npm install' or 'npm install -g @agentrhq/webcmd'";
+      } else if (data.daemon?.daemonRunning) {
         if (pulse) pulse.className = 'chip-pulse green';
+        if (label) label.innerText = 'webcmd :9777';
+        if (chip) chip.title = 'Webcmd daemon connected on port 9777';
+      } else {
+        if (pulse) pulse.className = 'chip-pulse red';
+        if (label) label.innerText = 'daemon offline';
+        if (chip) chip.title = 'Webcmd daemon is offline. Run: webcmd daemon restart';
       }
     } catch {
       console.log('Status endpoint check skipped.');

@@ -20,6 +20,7 @@
     "status:cloak": "node scripts/status_cloak.js"
   },
   "dependencies": {
+    "@agentrhq/webcmd": "^0.8.4",
     "acorn": "^8.18.0",
     "cors": "^2.8.5",
     "cross-spawn": "^7.0.6",

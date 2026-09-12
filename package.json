@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node tests/test_ticket_finder.js",
+    "test": "node --test tests/test_security_sandbox.js",
+    "test:security": "node --test tests/test_security_sandbox.js",
     "test:all": "node tests/test_all_five_workflows.js",
     "test:ticket": "node tests/test_ticket_finder.js",
     "test:arbitrage": "node tests/test_price_arbitrage.js",
@@ -17,7 +18,9 @@
     "clean:cloak": "node scripts/kill_cloak.js"
   },
   "dependencies": {
+    "acorn": "^8.18.0",
     "cors": "^2.8.5",
+    "cross-spawn": "^7.0.6",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "ws": "^8.18.0"

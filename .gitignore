@@ -9,8 +9,9 @@ node_modules/
 # Temporary script execution folders
 .temp_scripts/
 
-# Logs
+# Logs and audit records
 *.log
+.security/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

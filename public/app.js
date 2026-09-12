@@ -95,7 +95,22 @@ class AgentDashboard {
       emptySummaryState: document.getElementById('empty-summary-state'),
       summaryActiveReport: document.getElementById('summary-active-report'),
       markdownRenderArea: document.getElementById('markdown-render-area'),
-      btnCopyMd: document.getElementById('btn-copy-md')
+      btnCopyMd: document.getElementById('btn-copy-md'),
+
+      // Live Viewport tab & Sidebar Widget
+      tabBtnScreen: document.getElementById('tab-btn-screen'),
+      viewportUrlDisplay: document.getElementById('viewport-url-display'),
+      viewportActionText: document.getElementById('viewport-action-text'),
+      viewportStatusBanner: document.getElementById('viewport-status-banner'),
+      mainViewportImg: document.getElementById('main-viewport-img'),
+      viewportIdleScreen: document.getElementById('viewport-idle-screen'),
+      btnSnapViewport: document.getElementById('btn-snap-viewport'),
+      widgetPulseDot: document.getElementById('widget-pulse-dot'),
+      sidebarScreenTag: document.getElementById('sidebar-screen-tag'),
+      sidebarScreenImg: document.getElementById('sidebar-screen-img'),
+      sidebarScreenPlaceholder: document.getElementById('sidebar-screen-placeholder'),
+      sidebarScreenUrl: document.getElementById('sidebar-screen-url'),
+      btnSidebarSnap: document.getElementById('btn-sidebar-snap')
     };
   }
 
@@ -106,6 +121,10 @@ class AgentDashboard {
     if (btn) btn.classList.add('active');
     const target = document.getElementById(tabId);
     if (target) target.classList.add('active');
+
+    if (tabId === 'tab-screen') {
+      this.fetchLiveScreen();
+    }
   }
 
   initEvents() {
@@ -223,6 +242,14 @@ class AgentDashboard {
         });
       });
     }
+
+    // Live Screen Snap buttons
+    if (this.els.btnSnapViewport) {
+      this.els.btnSnapViewport.addEventListener('click', () => this.fetchLiveScreen());
+    }
+    if (this.els.btnSidebarSnap) {
+      this.els.btnSidebarSnap.addEventListener('click', () => this.fetchLiveScreen());
+    }
   }
 
   connectWebSocket() {
@@ -338,18 +365,80 @@ class AgentDashboard {
       this.els.btnStop.disabled = false;
       this.els.liveIndicator.classList.add('running');
       this.els.liveStatusText.innerText = 'Active (Cloak Chromium)';
+      if (this.els.widgetPulseDot) this.els.widgetPulseDot.classList.add('active');
+      if (this.els.sidebarScreenTag) this.els.sidebarScreenTag.innerText = 'LIVE';
+      if (!this.screenPollTimer) {
+        this.screenPollTimer = setInterval(() => this.fetchLiveScreen(), 2500);
+      }
     } else {
       this.els.btnLaunch.disabled = false;
       this.els.btnStop.disabled = true;
       this.els.liveIndicator.classList.remove('running');
       this.els.liveStatusText.innerText = 'Mission Idle';
+      if (this.els.widgetPulseDot) this.els.widgetPulseDot.classList.remove('active');
+      if (this.els.sidebarScreenTag) this.els.sidebarScreenTag.innerText = 'STANDBY';
+      if (this.screenPollTimer) {
+        clearInterval(this.screenPollTimer);
+        this.screenPollTimer = null;
+      }
     }
+  }
+
+  updateLiveScreen(snap) {
+    if (!snap) return;
+    const imgUrl = snap.image || snap.dataUrl;
+    if (!imgUrl) return;
+
+    if (this.els.mainViewportImg) {
+      this.els.mainViewportImg.src = imgUrl;
+      this.els.mainViewportImg.style.display = 'block';
+    }
+    if (this.els.viewportIdleScreen) {
+      this.els.viewportIdleScreen.style.display = 'none';
+    }
+    if (this.els.viewportUrlDisplay && snap.url) {
+      this.els.viewportUrlDisplay.innerText = snap.url;
+    }
+
+    if (this.els.sidebarScreenImg) {
+      this.els.sidebarScreenImg.src = imgUrl;
+      this.els.sidebarScreenImg.style.display = 'block';
+    }
+    if (this.els.sidebarScreenPlaceholder) {
+      this.els.sidebarScreenPlaceholder.style.display = 'none';
+    }
+    if (this.els.sidebarScreenUrl && snap.url) {
+      this.els.sidebarScreenUrl.innerText = snap.url;
+    }
+    if (this.els.sidebarScreenTag) {
+      this.els.sidebarScreenTag.innerText = 'LIVE';
+    }
+    if (this.els.widgetPulseDot) {
+      this.els.widgetPulseDot.classList.add('active');
+    }
+  }
+
+  async fetchLiveScreen() {
+    try {
+      const res = await fetch('/api/browser/screen');
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.ok && data.dataUrl) {
+        this.updateLiveScreen({ image: data.dataUrl, url: data.url, title: data.title });
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   handleMessage(msg) {
     switch (msg.type) {
       case 'status_change':
         this.setRunningState(msg.status === 'RUNNING');
+        break;
+
+      case 'screen_snapshot':
+        this.updateLiveScreen(msg);
         break;
 
       case 'session_created':
@@ -382,6 +471,9 @@ class AgentDashboard {
 
       case 'step_start':
         this.appendLog('info', `Step ${msg.step}: ${msg.title}`, msg.timestamp);
+        if (this.els.viewportActionText) {
+          this.els.viewportActionText.innerText = `Step ${msg.step}: ${msg.title}`;
+        }
         break;
 
       case 'step_executed':

@@ -463,7 +463,43 @@ class AgentDashboard {
     this.els.feedContainer.scrollTop = this.els.feedContainer.scrollHeight;
   }
 
+  playApprovalChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!this.audioCtx) {
+        this.audioCtx = new AudioCtx();
+      }
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume();
+      }
+      const ctx = this.audioCtx;
+      const now = ctx.currentTime;
+
+      // Clean two-tone operator chime (880Hz -> 1320Hz)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.setValueAtTime(1320, now + 0.12);
+
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.45);
+    } catch (_) {
+      // Gracefully ignore if browser audio autoplay policy suppresses sound
+    }
+  }
+
   showHitlApproval(req) {
+    this.playApprovalChime();
+    this.els.hitlCard.classList.add('hitl-attention');
     this.els.hitlCard.style.display = 'flex';
     this.els.hitlWarningText.innerText = req.warning || req.message;
     this.els.hitlActionName.innerText = req.action?.type || req.category || 'Sensitive Action';
@@ -474,6 +510,7 @@ class AgentDashboard {
   }
 
   hideHitlApproval() {
+    this.els.hitlCard.classList.remove('hitl-attention');
     this.els.hitlCard.style.display = 'none';
   }
 

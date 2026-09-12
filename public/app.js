@@ -102,6 +102,7 @@ class AgentDashboard {
       viewportUrlDisplay: document.getElementById('viewport-url-display'),
       viewportActionText: document.getElementById('viewport-action-text'),
       viewportStatusBanner: document.getElementById('viewport-status-banner'),
+      viewportActionSpinner: document.querySelector('.viewport-status-banner .action-spinner'),
       mainViewportImg: document.getElementById('main-viewport-img'),
       viewportIdleScreen: document.getElementById('viewport-idle-screen'),
       btnSnapViewport: document.getElementById('btn-snap-viewport'),
@@ -348,6 +349,13 @@ class AgentDashboard {
 
   stopMission() {
     this.send({ action: 'stop' });
+    this.appendLog('warning', 'Mission execution halted by operator.');
+    if (this.els.viewportActionSpinner) {
+      this.els.viewportActionSpinner.style.display = 'none';
+    }
+    if (this.els.viewportActionText) {
+      this.els.viewportActionText.innerText = '⏹️ Mission stopped by operator';
+    }
     this.setRunningState(false);
   }
 
@@ -370,6 +378,9 @@ class AgentDashboard {
       this.els.liveStatusText.innerText = 'Active (Cloak Chromium)';
       if (this.els.widgetPulseDot) this.els.widgetPulseDot.classList.add('active');
       if (this.els.sidebarScreenTag) this.els.sidebarScreenTag.innerText = 'LIVE';
+      if (this.els.viewportActionSpinner) {
+        this.els.viewportActionSpinner.style.display = 'inline-block';
+      }
       if (!this.screenPollTimer) {
         this.screenPollTimer = setInterval(() => this.fetchLiveScreen(), 2500);
       }
@@ -380,6 +391,9 @@ class AgentDashboard {
       this.els.liveStatusText.innerText = 'Mission Idle';
       if (this.els.widgetPulseDot) this.els.widgetPulseDot.classList.remove('active');
       if (this.els.sidebarScreenTag) this.els.sidebarScreenTag.innerText = 'STANDBY';
+      if (this.els.viewportActionSpinner) {
+        this.els.viewportActionSpinner.style.display = 'none';
+      }
       if (this.screenPollTimer) {
         clearInterval(this.screenPollTimer);
         this.screenPollTimer = null;
@@ -474,6 +488,9 @@ class AgentDashboard {
 
       case 'step_start':
         this.appendLog('info', `Step ${msg.step}: ${msg.title}`, msg.timestamp);
+        if (this.els.viewportActionSpinner) {
+          this.els.viewportActionSpinner.style.display = 'inline-block';
+        }
         if (this.els.viewportActionText) {
           this.els.viewportActionText.innerText = `Step ${msg.step}: ${msg.title}`;
         }
@@ -484,6 +501,9 @@ class AgentDashboard {
         this.els.statSteps.innerText = this.stepCount;
         if (msg.timing) {
           this.els.statLatency.innerText = `${msg.timing}ms`;
+        }
+        if (this.els.viewportActionText) {
+          this.els.viewportActionText.innerText = `Step ${msg.step} Completed: ${msg.title}`;
         }
         if (msg.snapshotDiff) {
           this.appendLog('success', `Completed: ${msg.title} (${msg.timing || 95}ms)`, msg.timestamp, msg.snapshotDiff);
@@ -513,6 +533,12 @@ class AgentDashboard {
 
       case 'task_complete':
         this.appendLog('success', `Task Finished: ${typeof msg.summary === 'string' ? msg.summary.slice(0, 100) : 'Done'}`, msg.timestamp);
+        if (this.els.viewportActionSpinner) {
+          this.els.viewportActionSpinner.style.display = 'none';
+        }
+        if (this.els.viewportActionText) {
+          this.els.viewportActionText.innerText = '✅ Mission Complete: All steps executed successfully';
+        }
         this.els.jsonOutputBox.innerText = JSON.stringify(msg.structuredData || {}, null, 2);
         const reportToRender = msg.markdown || msg.summary || msg.executiveReport || msg.report;
         if (reportToRender) {
@@ -525,6 +551,12 @@ class AgentDashboard {
 
       case 'task_error':
         this.appendLog('error', `Execution Error: ${msg.message}`, msg.timestamp);
+        if (this.els.viewportActionSpinner) {
+          this.els.viewportActionSpinner.style.display = 'none';
+        }
+        if (this.els.viewportActionText) {
+          this.els.viewportActionText.innerText = `⚠️ Mission Halted: ${msg.message || 'Execution error'}`;
+        }
         this.setRunningState(false);
         break;
     }

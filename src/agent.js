@@ -1,3 +1,4 @@
+import { exec } from 'child_process';
 import { webcmdBridge } from './webcmdBridge.js';
 import { hitlGuard } from './hitlGuard.js';
 import { geminiClient } from './geminiClient.js';
@@ -9,6 +10,19 @@ import { runTicketFinder } from './workflows/ticketFinder.js';
 import { runExecutiveBriefing } from './workflows/executiveBriefing.js';
 import { recipeManager } from './recipeManager.js';
 import { validateNavigationUrl } from './codeSandbox.js';
+
+function launchDesktopBrowser(targetUrl) {
+  if (!targetUrl || !targetUrl.startsWith('http')) return;
+  try {
+    if (process.platform === 'win32') {
+      exec(`start "" "${targetUrl}"`).unref();
+    } else if (process.platform === 'darwin') {
+      exec(`open "${targetUrl}"`).unref();
+    } else {
+      exec(`xdg-open "${targetUrl}"`).unref();
+    }
+  } catch (_) {}
+}
 
 export class AgentController {
   constructor() {
@@ -130,6 +144,12 @@ export class AgentController {
       this.emit('log', { type: 'system', message: '🖥️ Launching separate Cloak Chromium window on screen...' });
       await webcmdBridge.runScript(this.currentSessionId, 'try { await page.bringToFront(); } catch (_) {}\nreturn { ready: true };', 15).catch(() => {});
       this.emit('log', { type: 'system', message: '✅ Cloak Chromium window active and connected.' });
+      
+      const initialUrl = params.url || (workflow === 'events' ? 'https://www.district.in/movies/' : '');
+      if (initialUrl && initialUrl.startsWith('http')) {
+        launchDesktopBrowser(initialUrl);
+      }
+      
       await this.captureLiveView().catch(() => {});
 
       const context = {

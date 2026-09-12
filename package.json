@@ -22,7 +22,8 @@
     "test:briefing": "node tests/test_executive_briefing.js",
     "clean:cloak": "node scripts/kill_cloak.js",
     "open:browser": "node scripts/open_browser.js",
-    "status:cloak": "node scripts/status_cloak.js"
+    "status:cloak": "node scripts/status_cloak.js",
+    "postinstall": "node scripts/patch_webcmd_visibility.js"
   },
   "dependencies": {
     "@agentrhq/webcmd": "^0.8.4",

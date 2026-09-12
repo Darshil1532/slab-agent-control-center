@@ -50,6 +50,7 @@ function broadcast(data) {
 
 // Hook agent events into WebSocket broadcast
 agentController.onEvent(event => {
+  console.log(`[AGENT EVENT: ${event.type}]`, event.message || event.title || event.sessionId || '');
   broadcast(event);
 });
 
@@ -114,11 +115,12 @@ wss.on('connection', ws => {
 
       switch (message.action) {
         case 'start':
+          console.log('🚀 Launching Agent Mission:', message.workflow, message.params?.goal || message.params?.query);
           agentController.startMission({
             workflow: message.workflow,
             params: message.params || {}
           }).catch(err => {
-            console.error('Workflow error:', err.message);
+            console.error('Workflow error:', err);
           });
           break;
 

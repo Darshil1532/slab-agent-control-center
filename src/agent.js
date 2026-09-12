@@ -85,10 +85,15 @@ export class AgentController {
         this.currentSessionId = null;
       }
 
-      // 1. Create Webcmd Session
+      // 1. Create Webcmd Session & immediately launch visible browser window
       this.emit('log', { type: 'system', message: 'Creating isolated browser session in Cloak Chromium...' });
       this.currentSessionId = await webcmdBridge.createSession(workflow || 'mission');
       this.emit('session_created', { sessionId: this.currentSessionId });
+
+      // Immediate window wake-up: pops open the visible Cloak Chromium window right away
+      this.emit('log', { type: 'system', message: '🖥️ Launching separate Cloak Chromium window on screen...' });
+      await webcmdBridge.runScript(this.currentSessionId, 'try { await page.bringToFront(); } catch (_) {}\nreturn { ready: true };', 15).catch(() => {});
+      this.emit('log', { type: 'system', message: '✅ Cloak Chromium window active and connected.' });
 
       const context = {
         sessionId: this.currentSessionId,

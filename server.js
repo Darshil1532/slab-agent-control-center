@@ -56,6 +56,15 @@ agentController.onEvent(event => {
 });
 
 // REST Endpoints
+app.get('/healthz', (req, res) => {
+  res.json({
+    status: 'healthy',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    agentState: agentController.isRunning ? 'RUNNING' : 'IDLE'
+  });
+});
+
 app.get('/api/status', async (req, res) => {
   const doctor = await webcmdBridge.checkDoctor();
   res.json({

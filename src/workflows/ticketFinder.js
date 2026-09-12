@@ -355,23 +355,47 @@ Return strictly valid JSON:
         bestLink = { href: links[0].href, text: links[0].innerText.trim(), matchCount: 0 };
       }
 
-      return bestLink || { href: '', text: '' };
+      return bestLink;
     }, targetQueryTokens);
 
-    if (movieTarget && movieTarget.href) {
-      await page.goto(movieTarget.href, { waitUntil: 'domcontentloaded', timeout: 35000 });
-      await page.waitForTimeout(3000);
+    // If not found in search results, return to District movies homepage to grab active movie
+    if (!movieTarget || !movieTarget.href) {
+      try {
+        await page.goto('https://www.district.in/movies/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.waitForTimeout(2000);
+        movieTarget = await page.evaluate(() => {
+          const link = document.querySelector('a[href*="/movies/"]');
+          const headline = document.querySelector('h1, h2, h3, [class*="title"]');
+          return {
+            href: link ? link.href : window.location.href,
+            text: headline ? headline.innerText.trim() : 'District Featured'
+          };
+        });
+      } catch (_) {}
     }
 
-    return { ok: true, movieTarget, movieUrl: page.url(), pageTitle: await page.title() };
+    if (movieTarget && movieTarget.href && movieTarget.href.startsWith('http') && movieTarget.href !== page.url()) {
+      try {
+        await page.goto(movieTarget.href, { waitUntil: 'domcontentloaded', timeout: 35000 });
+        await page.waitForTimeout(3000);
+      } catch (_) {}
+    }
+
+    return {
+      ok: true,
+      movieTarget,
+      movieUrl: page.url(),
+      pageTitle: await page.title()
+    };
   `;
 
   const searchRes = await bridge.runScript(sessionId, searchScript, 45);
-  const targetMovieUrl = searchRes.result?.movieUrl || page.url();
+  const targetMovieUrl = searchRes.result?.movieUrl || cityResult?.currentUrl || startUrl || 'https://www.district.in/movies/';
+  const detectedMovie = searchRes.result?.movieTarget?.text?.split('\n')[0] || requestedMovie;
 
   emit('step_executed', {
     step: 2,
-    title: `Located Movie on District: ${searchRes.result?.movieTarget?.text?.split('\n')[0] || requestedMovie}`,
+    title: `Located Movie on District: ${detectedMovie}`,
     url: targetMovieUrl
   });
 

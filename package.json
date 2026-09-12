@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "lint": "node --check server.js src/*.js tests/*.js scripts/*.js",
     "test": "node --test tests/test_security_sandbox.js",
     "test:security": "node --test tests/test_security_sandbox.js",
     "test:all": "node tests/test_all_five_workflows.js",

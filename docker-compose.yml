@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  agent-control-center:
+    build: .
+    container_name: slab-agent-control-center
+    ports:
+      - "3000:3000"
+      - "9777:9777"
+    environment:
+      - PORT=3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: unless-stopped

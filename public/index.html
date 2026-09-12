@@ -226,6 +226,11 @@
               <span>Learned CLI Recipe</span>
               <span class="micro-badge">Self-Learning</span>
             </button>
+            <button class="tab-button" data-tab="tab-screen" id="tab-btn-screen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <span>Live Viewport</span>
+              <span class="micro-badge live-stream-pill" id="screen-stream-pill">Live Stream</span>
+            </button>
             <button class="tab-button" data-tab="tab-json">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
               <span>Structured Evidence</span>
@@ -346,10 +351,69 @@ webcmd &lt;site&gt; &lt;command&gt; [args] --format json</pre>
           </div>
         </div>
 
+        <!-- Tab 4: Live Viewport Screen Mirror -->
+        <div class="tab-view" id="tab-screen">
+          <div class="browser-viewport-window">
+            <div class="viewport-chrome-bar">
+              <div class="chrome-traffic-dots">
+                <span class="c-dot red"></span>
+                <span class="c-dot yellow"></span>
+                <span class="c-dot green"></span>
+              </div>
+              <div class="chrome-address-bar">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span class="chrome-url" id="viewport-url-display">about:blank</span>
+                <span class="live-rec-badge"><span class="rec-dot"></span> LIVE</span>
+              </div>
+              <div class="chrome-tools">
+                <button class="btn btn-xs" id="btn-snap-viewport" title="Refresh Screen Snapshot">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  <span>Snap</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="viewport-stage" id="viewport-stage">
+              <div class="viewport-status-banner" id="viewport-status-banner">
+                <span class="action-spinner"></span>
+                <span id="viewport-action-text">Cloak Chromium ready for agent instructions...</span>
+              </div>
+              <img id="main-viewport-img" class="viewport-img" src="" alt="Live Agent Screen" style="display: none;" />
+              <div class="viewport-idle-screen" id="viewport-idle-screen">
+                <div class="idle-icon">🖥️</div>
+                <h3 class="empty-title">Live Screen Mirror Standby</h3>
+                <p class="empty-subtitle">Deploy a mission to stream real-time browser actions, clicks, navigations, and showtimes directly on this screen.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </section>
 
       <!-- Right Column: Inspector & Guard -->
       <aside class="sidebar-inspector">
+
+        <!-- Live Browser Screen Widget (Always Visible) -->
+        <div class="inspector-card live-screen-widget">
+          <div class="inspector-header">
+            <div style="display: flex; align-items: center; gap: 0.45rem;">
+              <span class="pulse-indicator-dot" id="widget-pulse-dot"></span>
+              <h3>Live Agent Viewport</h3>
+            </div>
+            <span class="chip-plain" id="sidebar-screen-tag">STANDBY</span>
+          </div>
+          <div class="widget-screen-container">
+            <img id="sidebar-screen-img" class="widget-img" src="" alt="Live Screen" style="display: none;" />
+            <div class="widget-screen-placeholder" id="sidebar-screen-placeholder">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <span>Waiting for mission start...</span>
+            </div>
+          </div>
+          <div class="widget-screen-bar">
+            <span class="widget-url" id="sidebar-screen-url">about:blank</span>
+            <button class="btn btn-xs" id="btn-sidebar-snap" title="Capture live snapshot">📸 Snap</button>
+          </div>
+        </div>
         
         <!-- Human Approval Modal Card (Rule #2 Guard) -->
         <div class="security-checkpoint-card" id="hitl-card" style="display: none;">

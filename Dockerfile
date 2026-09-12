@@ -1,43 +1,52 @@
-# SLAB Agent Control Center Dockerfile
+# SLAB Agent Control Center - Isolated Container Runtime
+# Enforces OS-level isolation boundary recommended in SECURITY.md
+
 FROM node:20-bookworm-slim
 
-# Install system dependencies required for Chromium/browser automation
+# Install system dependencies required for Chromium headless/runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
     ca-certificates \
-    fonts-liberation \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libcups2 \
-    libdbus-1-3 \
-    libdrm2 \
-    libgbm1 \
-    libglib2.0-0 \
-    libnspr4 \
+    curl \
+    gnupg \
+    procps \
     libnss3 \
-    libpango-1.0-0 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
     libxcomposite1 \
     libxdamage1 \
     libxfixes3 \
     libxrandr2 \
-    xdg-utils \
-    procps \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install dependencies first for efficient layer caching
+# Install dependencies first for Docker layer caching
 COPY package*.json ./
 RUN npm ci --omit=dev
 
 # Copy application source code
 COPY . .
 
-# Expose server port (3000) and webcmd daemon port (9777)
-EXPOSE 3000 9777
+# Ensure security log directory exists with correct permissions
+RUN mkdir -p .security && chown -R node:node /app
 
-ENV NODE_ENV=production
-ENV PORT=3000
+# Switch to unprivileged user
+USER node
 
-CMD ["npm", "start"]
+# Expose Web Control Center port
+EXPOSE 3000
+
+# Container health probe
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/healthz || exit 1
+
+# Launch Control Center Server
+CMD ["node", "server.js"]

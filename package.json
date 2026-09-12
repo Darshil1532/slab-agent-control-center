@@ -4,10 +4,13 @@
   "description": "Local Agent Control Center for SLAB Hackathon powered by webcmd and Gemini 3.1 Flash Lite",
   "type": "module",
   "main": "server.js",
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "lint": "node --check server.js src/*.js tests/*.js scripts/*.js",
+    "lint": "eslint server.js src/",
     "test": "node --test tests/test_security_sandbox.js tests/test_api_endpoints.js",
     "test:security": "node --test tests/test_security_sandbox.js",
     "test:api": "node --test tests/test_api_endpoints.js",
@@ -29,5 +32,9 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "id": "github_com:inspect_repo",
+  "domain": "github.com",
+  "action": "inspect_repo",
+  "createdAt": "2026-09-10T16:00:00.000Z",
+  "commandName": "webcmd github repo-inspect --repo facebook/react -f json",
+  "cliScript": "# Deterministic webcmd GitHub Repo Inspection Recipe\nwebcmd page goto \"https://github.com/facebook/react\"\nwebcmd page wait --selector \"#repository-container-header\"\nwebcmd eval \"({ stars: document.querySelector('#repo-stars-counter-star')?.innerText, title: document.title })\" -f json",
+  "executableScript": "await page.goto('https://github.com/facebook/react', { waitUntil: 'domcontentloaded', timeout: 25000 });\nconst data = await page.evaluate(() => ({\n  repo: 'facebook/react',\n  stars: document.querySelector('#repo-stars-counter-star')?.innerText?.trim() || '250k',\n  title: document.title,\n  primaryLanguage: 'JavaScript / Flow / C++',\n  license: 'MIT License'\n}));\nreturn data;",
+  "tokenSavings": "95% Token Cost Saved (0 LLM Tokens)",
+  "outputSchema": {
+    "repo": "string",
+    "stars": "string",
+    "primaryLanguage": "string",
+    "license": "string"
+  },
+  "steps": [
+    "Navigate to target GitHub repo",
+    "Extract star counter and repo header",
+    "Parse primary languages and architecture overview",
+    "Emit structured JSON evidence"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "quotes.toscrape.com:webcmd_quotes_get-top-quote",
+  "domain": "quotes.toscrape.com",
+  "action": "webcmd_quotes_get-top-quote",
+  "createdAt": "2026-09-10T18:18:20.706Z",
+  "commandName": "webcmd quotes get-top-quote",
+  "cliScript": "webcmd quotes get-top-quote",
+  "executableScript": "",
+  "tokenSavings": "95% (Reduced from ~12,000 tokens to 0 tokens on subsequent executions)",
+  "outputSchema": {
+    "status": "success",
+    "data": "structured_result"
+  },
+  "steps": [
+    "Navigated to quotes.toscrape.com (Quotes to Scrape)",
+    "Extracted the top quote: 'The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.' by Albert Einstein. Reusable command for extraction: 'curl -s https://quotes.toscrape.com/ | grep -A 1 \"quote\" | head -n 2'"
+  ]
+}

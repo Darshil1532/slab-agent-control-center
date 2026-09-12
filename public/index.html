@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLAB — Agent Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=3.6">
+  <script src="vendor/marked.min.js?v=3.6"></script>
+</head>
+<body class="light-theme">
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand-group">
+        <div class="brand-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        </div>
+        <div class="brand-text-wrap">
+          <span class="brand-title">SLAB</span>
+          <span class="brand-separator">/</span>
+          <span class="brand-subtitle">Control Center</span>
+        </div>
+        <span class="edition-pill">VIT Bhopal Edition</span>
+      </div>
+
+      <!-- Telemetry Health Chips -->
+      <div class="telemetry-chips">
+        <div class="chip" id="status-daemon" title="Webcmd daemon on port 9777">
+          <span class="chip-pulse green"></span>
+          <span class="chip-label">webcmd :9777</span>
+        </div>
+
+        <div class="chip" id="status-browser" title="Stealth Chromium binary connected">
+          <span class="chip-pulse green"></span>
+          <span class="chip-label">Cloak Chromium</span>
+        </div>
+
+        <div class="chip" id="status-llm" title="Gemini 3.1 Flash Lite connected">
+          <span class="chip-pulse purple"></span>
+          <span class="chip-label">Gemini 3.1 Flash Lite</span>
+        </div>
+
+        <div class="chip chip-guard" id="status-hitl" title="Human-in-the-Loop Safety Rule Active">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <span class="chip-label">Rule #2 Guard Armed</span>
+        </div>
+      </div>
+
+      <!-- Header Utilities -->
+      <div class="nav-controls">
+        <button class="btn btn-ghost" id="btn-clear-logs" title="Clear execution timeline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <span>Clear Feed</span>
+        </button>
+        <button class="btn btn-outline-danger" id="btn-stop-mission" disabled>
+          <span class="stop-dot"></span>
+          <span>Stop Run</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="page-body">
+    
+    <!-- Hero / Launchpad Card -->
+    <section class="launchpad-panel">
+      <div class="launchpad-intro">
+        <div class="intro-heading-group">
+          <h1 class="intro-heading">Mission Launchpad</h1>
+          <p class="intro-subtext">Autonomous browser agent orchestration powered by <code>webcmd</code> self-learning memory layer</p>
+        </div>
+        <div class="motto-chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>Explore once. Learn the workflow. Reuse the command.</span>
+        </div>
+      </div>
+
+      <!-- Workflow Preset Grid -->
+      <div class="workflow-presets-grid">
+        
+        <!-- Preset 1: GitHub Deep-Diver -->
+        <div class="workflow-card active" data-workflow="github">
+          <div class="card-top-meta">
+            <div class="icon-avatar" style="background:#eef2ff; color:#4f46e5;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+            </div>
+            <span class="tag-pill tag-synth">CLI Synthesis</span>
+          </div>
+          <div class="card-text-body">
+            <span class="card-title">GitHub Repo Deep-Diver</span>
+            <span class="card-description">Inspect repo stack, package dependencies, star metrics, architecture, and CLI recipe.</span>
+          </div>
+        </div>
+
+        <!-- Preset 2: Amazon vs Flipkart Arbitrage -->
+        <div class="workflow-card" data-workflow="arbitrage">
+          <div class="card-top-meta">
+            <div class="icon-avatar cart-avatar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            </div>
+            <span class="tag-pill tag-rule">Hard Rule #2 HITL</span>
+          </div>
+          <div class="card-text-body">
+            <span class="card-title">Amazon vs Flipkart Arbitrage</span>
+            <span class="card-description">Scrape both stores in real-time, compute net arbitrage savings, and gate checkout.</span>
+          </div>
+        </div>
+
+        <!-- Preset 3: Job Matcher & Auto-Filler -->
+        <div class="workflow-card" data-workflow="jobs">
+          <div class="card-top-meta">
+            <div class="icon-avatar job-avatar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            </div>
+            <span class="tag-pill tag-rule">Hard Rule #2 HITL</span>
+          </div>
+          <div class="card-text-body">
+            <span class="card-title">Job Auto-Filler & Matcher</span>
+            <span class="card-description">Scrape hiring boards (YC/LinkedIn), match stack %, prefill form & request submission gate.</span>
+          </div>
+        </div>
+
+        <!-- Preset 4: Movie / Event Finder -->
+        <div class="workflow-card" data-workflow="events">
+          <div class="card-top-meta">
+            <div class="icon-avatar" style="background:#fef3c7; color:#d97706;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+            </div>
+            <span class="tag-pill tag-rule">Hard Rule #2 HITL</span>
+          </div>
+          <div class="card-text-body">
+            <span class="card-title">Movie & Event Finder</span>
+            <span class="card-description">Find showtimes on District / BookMyShow, select cheapest seats, and gate booking.</span>
+          </div>
+        </div>
+
+        <!-- Preset 5: Daily Executive Briefing -->
+        <div class="workflow-card" data-workflow="briefing">
+          <div class="card-top-meta">
+            <div class="icon-avatar news-avatar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8"></path><path d="M15 18h-5"></path><path d="M10 6h8v4h-8V6Z"></path></svg>
+            </div>
+            <span class="tag-pill" style="background:#ecfdf5; color:#059669; border: 1px solid #a7f3d0;">Gemini 3.1 Filtered</span>
+          </div>
+          <div class="card-text-body">
+            <span class="card-title">Daily Executive Briefing</span>
+            <span class="card-description">Ingest HN, Bloomberg, Crypto; purge hype with Gemini for a 3-minute macro tech digest.</span>
+          </div>
+        </div>
+
+        <!-- Preset 6: Autonomous Custom Goal -->
+        <div class="workflow-card" data-workflow="custom">
+          <div class="card-top-meta">
+            <div class="icon-avatar custom-avatar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+            </div>
+            <span class="tag-pill tag-auto">Universal Agent</span>
+          </div>
+          <div class="card-text-body">
+            <span class="card-title">Universal Autonomous Goal</span>
+            <span class="card-description">Dynamic accessibility tree exploration on any custom target URL, form, or portal.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Command Bar Input -->
+      <div class="command-bar">
+        <div class="input-cell flex-1">
+          <div class="input-label-row">
+            <label for="mission-prompt">Agent Mission Goal</label>
+            <span class="shortcut-hint">Natural language instruction</span>
+          </div>
+          <div class="input-with-icon">
+            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="mission-prompt" value="Inspect facebook/react repository: analyze tech stack, dependencies, star metrics, and architecture summary" placeholder="What should the agent accomplish?">
+          </div>
+        </div>
+
+        <div class="input-cell url-cell" id="url-group" style="display: flex;">
+          <div class="input-label-row">
+            <label for="mission-url">Target URL</label>
+          </div>
+          <div class="input-with-icon">
+            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <input type="text" id="mission-url" value="https://github.com/facebook/react" placeholder="https://...">
+          </div>
+        </div>
+
+        <button class="btn btn-launch" id="btn-launch">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <span>Deploy Agent</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Workspace Split Columns -->
+    <div class="workspace-layout">
+      
+      <!-- Left Column: Feed, CLI Recipe, JSON -->
+      <section class="feed-panel-container">
+        <div class="panel-tab-bar">
+          <div class="tab-pill-group">
+            <button class="tab-button active" data-tab="tab-feed">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              <span>Execution Timeline</span>
+              <span class="count-pill" id="log-count">0</span>
+            </button>
+            <button class="tab-button" data-tab="tab-summary" id="tab-btn-summary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>Executive Summary</span>
+              <span class="micro-badge" id="summary-badge" style="display:none; background:#10b981; color:#fff;">Ready</span>
+            </button>
+            <button class="tab-button" data-tab="tab-command">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+              <span>Learned CLI Recipe</span>
+              <span class="micro-badge">Self-Learning</span>
+            </button>
+            <button class="tab-button" data-tab="tab-json">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>Structured Evidence</span>
+            </button>
+          </div>
+
+          <div class="live-status-badge" id="live-indicator">
+            <span class="live-dot"></span>
+            <span id="live-status-text">Mission Idle</span>
+          </div>
+        </div>
+
+        <!-- Tab 1: Live Timeline Feed -->
+        <div class="tab-view active" id="tab-feed">
+          <div class="timeline-feed" id="feed-container">
+            <div class="empty-timeline-state">
+              <div class="empty-halo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              </div>
+              <h3 class="empty-title">Control Center Standby</h3>
+              <p class="empty-subtitle">Pick a workflow preset above or enter any natural language mission. Watch live stealth browser execution stream here in real time.</p>
+              <div class="screen-split-hint">
+                <span class="hint-icon">💡</span>
+                <span><strong>Split Screen Presentation:</strong> Snap this dashboard to the left half of your screen to watch Cloak Chromium interact live on the right.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Mission Summary & Output -->
+        <div class="tab-view" id="tab-summary">
+          <div class="summary-container" id="summary-container">
+            <!-- Standby State -->
+            <div class="empty-timeline-state" id="empty-summary-state">
+              <div class="empty-halo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <h3 class="empty-title">Executive Mission Summary Standby</h3>
+              <p class="empty-subtitle">Deploy the agent on any goal. Once execution reaches the final target, the AI will compile a detailed breakdown here of <strong>what was done</strong>, <strong>what candidates were evaluated</strong>, and the <strong>exact final output</strong>.</p>
+              <div class="screen-split-hint">
+                <span class="hint-icon">🚀</span>
+                <span><strong>End-to-End Autonomy:</strong> The browser explores, navigates to the item page, enforces Rule #2 HITL gates, and leaves the page open for you.</span>
+              </div>
+            </div>
+
+            <!-- Active Report View -->
+            <div class="summary-active-report" id="summary-active-report" style="display: none;">
+              <div class="summary-toolbar">
+                <div class="summary-meta-badges">
+                  <span class="badge-md-tag">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                    <span>Autonomous Markdown Digest</span>
+                  </span>
+                  <span class="badge-live-tag">
+                    <span class="live-dot" style="width:6px; height:6px;"></span>
+                    <span>Live Verification</span>
+                  </span>
+                </div>
+                <button class="btn btn-copy-md" id="btn-copy-md" title="Copy raw markdown to clipboard">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy Markdown</span>
+                </button>
+              </div>
+              <div class="markdown-body" id="markdown-render-area"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Learned Command Tab -->
+        <div class="tab-view" id="tab-command">
+          <div class="command-showcase">
+            <div class="showcase-callout">
+              <div class="callout-icon">⚡</div>
+              <div class="callout-body">
+                <h4>Deterministic Command Synthesis</h4>
+                <p>Webcmd observes the interactive DOM flow and compiles it into a deterministic, reusable CLI command. Subsequent executions bypass LLM reasoning, saving up to 90% in token costs.</p>
+              </div>
+            </div>
+
+            <div class="terminal-container">
+              <div class="terminal-topbar">
+                <div class="terminal-dots">
+                  <span class="term-dot"></span>
+                  <span class="term-dot"></span>
+                  <span class="term-dot"></span>
+                </div>
+                <div class="terminal-actions" style="display:flex; align-items:center; gap:0.4rem;">
+                  <button class="btn btn-copy" id="btn-copy-cmd">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy</span>
+                  </button>
+                  <button class="btn btn-execute-cmd" id="btn-run-cmd" title="Execute this deterministic command directly (bypassing LLM tokens)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>Reuse Command</span>
+                  </button>
+                </div>
+              </div>
+              <pre class="terminal-content" id="learned-cli-box"># Run an agent workflow to synthesize a deterministic command.
+webcmd &lt;site&gt; &lt;command&gt; [args] --format json</pre>
+            </div>
+
+            <div class="savings-card" id="savings-card" style="display: none;">
+              <div class="savings-metric-box">
+                <span class="savings-percentage" id="stat-savings">90%</span>
+                <span class="savings-subtext">Token Cost Saved</span>
+              </div>
+              <div class="savings-explanation" id="stat-summary">
+                Subsequent executions bypass LLM navigation loops and run deterministically.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Structured JSON Output -->
+        <div class="tab-view" id="tab-json">
+          <div class="json-viewer-container">
+            <pre class="json-code-view" id="json-output-box">// Final structured evidence from browser run will appear here.</pre>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: Inspector & Guard -->
+      <aside class="sidebar-inspector">
+        
+        <!-- Human Approval Modal Card (Rule #2 Guard) -->
+        <div class="security-checkpoint-card" id="hitl-card" style="display: none;">
+          <div class="checkpoint-header">
+            <div class="checkpoint-pill-row">
+              <span class="security-chip">Safety Gate Active</span>
+              <span class="rule-chip">Hackathon Rule #2</span>
+            </div>
+            <h3 class="checkpoint-title">Human Authorization Required</h3>
+            <p class="checkpoint-subtext" id="hitl-warning-text">The agent has paused before executing a sensitive action on the live website.</p>
+          </div>
+
+          <div class="checkpoint-details">
+            <div class="detail-row">
+              <span class="detail-key">Action Type</span>
+              <span class="detail-val" id="hitl-action-name">Checkout & Payment</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-key">Target Element</span>
+              <span class="detail-val" id="hitl-action-target">Submit Button</span>
+            </div>
+          </div>
+
+          <div class="checkpoint-payload">
+            <span class="payload-header-label">Transaction Payload</span>
+            <pre class="payload-json" id="hitl-payload-view">{}</pre>
+          </div>
+
+          <div class="checkpoint-btn-group">
+            <button class="btn btn-abort" id="btn-hitl-reject">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              <span>Abort Action</span>
+            </button>
+            <button class="btn btn-authorize" id="btn-hitl-approve">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Approve & Authorize</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Session Telemetry Card -->
+        <div class="inspector-card">
+          <div class="inspector-header">
+            <h3>Live Telemetry</h3>
+            <span class="chip-plain" id="session-badge">No active session</span>
+          </div>
+          <div class="metrics-trio">
+            <div class="metric-cell">
+              <span class="metric-val" id="stat-steps">0</span>
+              <span class="metric-key">Steps Executed</span>
+            </div>
+            <div class="metric-cell">
+              <span class="metric-val" id="stat-latency">0ms</span>
+              <span class="metric-key">Latency</span>
+            </div>
+            <div class="metric-cell">
+              <span class="metric-val" id="stat-memory-status">Ready</span>
+              <span class="metric-key">Sitemap Memory</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer 1 Sitemap Memory -->
+        <div class="inspector-card">
+          <div class="inspector-header">
+            <h3>Webcmd Sitemap Memory (Layer 1)</h3>
+            <span class="chip-accent" id="memory-hit-pill">Local Memory</span>
+          </div>
+          <p class="inspector-note">Pre-cached domain routes and navigational affordances to prevent redundant exploration.</p>
+          <pre class="inspector-code-box" id="memory-preview-box">No sitemap context loaded yet.</pre>
+        </div>
+
+        <!-- Layer 0 Accessibility Tree -->
+        <div class="inspector-card">
+          <div class="inspector-header">
+            <h3>Accessibility Snapshot (Layer 0)</h3>
+            <span class="chip-plain">Ref Tree Diff</span>
+          </div>
+          <p class="inspector-note">Normalized element tree and ref pointers parsed from the live Chromium session.</p>
+          <pre class="inspector-code-box" id="snapshot-preview-box">Waiting for browser navigation...</pre>
+        </div>
+
+      </aside>
+
+    </div>
+  </main>
+
+  <script src="app.js?v=3.6"></script>
+</body>
+</html>

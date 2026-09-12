@@ -1,0 +1,18 @@
+{
+  "id": "en.wikipedia.org:webcmd_wikipedia_fetch-biography",
+  "domain": "en.wikipedia.org",
+  "action": "webcmd_wikipedia_fetch-biography",
+  "createdAt": "2026-09-11T15:53:58.668Z",
+  "commandName": "webcmd wikipedia fetch-biography",
+  "cliScript": "webcmd wikipedia fetch-biography --subject 'Adolf Hitler'",
+  "executableScript": "",
+  "tokenSavings": "95% (Reduced from ~18,000 tokens to 0 tokens on subsequent executions)",
+  "outputSchema": {
+    "status": "success",
+    "data": "structured_result"
+  },
+  "steps": [
+    "Navigated to en.wikipedia.org (Adolf Hitler - Wikipedia)",
+    "Successfully navigated to the Adolf Hitler Wikipedia page. The page contains comprehensive biographical information including his role as Führer of Germany (1934–1945), his term dates, and links to related historical figures and events."
+  ]
+}

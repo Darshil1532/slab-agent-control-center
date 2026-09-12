@@ -1,0 +1,25 @@
+{
+  "name": "slab-agent-control-center",
+  "version": "1.0.0",
+  "description": "Local Agent Control Center for SLAB Hackathon powered by webcmd and Gemini 3.1 Flash Lite",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node tests/test_ticket_finder.js",
+    "test:all": "node tests/test_all_five_workflows.js",
+    "test:ticket": "node tests/test_ticket_finder.js",
+    "test:arbitrage": "node tests/test_price_arbitrage.js",
+    "test:github": "node tests/test_github_deep_dive.js",
+    "test:jobs": "node tests/test_job_matcher.js",
+    "test:briefing": "node tests/test_executive_briefing.js",
+    "clean:cloak": "node scripts/kill_cloak.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  }
+}

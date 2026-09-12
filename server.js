@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { validateEnvironment } from './src/envValidator.js';
 import { agentController } from './src/agent.js';
 import { webcmdBridge } from './src/webcmdBridge.js';
 import { recipeManager } from './src/recipeManager.js';
@@ -161,6 +162,13 @@ wss.on('connection', ws => {
 
 // Start Server
 async function start() {
+  const envCheck = validateEnvironment();
+  if (!envCheck.valid) {
+    for (const issue of envCheck.issues) {
+      console.warn(`⚠️ CONFIG WARNING: ${issue}`);
+    }
+  }
+
   const doctor = await webcmdBridge.init();
 
   let daemonStatusLine;

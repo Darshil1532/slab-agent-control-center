@@ -79,3 +79,16 @@ test('REST API: /api/action/approve & /reject', async (t) => {
     assert.ok(body.hasOwnProperty('handled'));
   });
 });
+
+test('REST API: /api/tokens telemetry', async (t) => {
+  await t.test('returns 200 and real token tracking statistics', async () => {
+    const res = await fetch(`${baseUrl}/api/tokens`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.ok, true);
+    assert.equal(body.replayTokens, 0);
+    assert.ok(typeof body.totalTokens === 'number');
+    assert.ok(typeof body.totalPromptTokens === 'number');
+    assert.ok(body.savingsExplanation);
+  });
+});

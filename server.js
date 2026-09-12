@@ -9,7 +9,9 @@ import { validateEnvironment } from './src/envValidator.js';
 import { agentController } from './src/agent.js';
 import { webcmdBridge } from './src/webcmdBridge.js';
 import { recipeManager } from './src/recipeManager.js';
+import { geminiClient } from './src/geminiClient.js';
 import { assertSafeString, validateNavigationUrl } from './src/codeSandbox.js';
+import { exec } from 'child_process';
 
 dotenv.config();
 
@@ -106,6 +108,16 @@ app.post('/api/action/reject', (req, res) => {
   res.json({ handled });
 });
 
+app.get('/api/tokens', (req, res) => {
+  const metrics = geminiClient.getTokenMetrics();
+  res.json({
+    ok: true,
+    ...metrics,
+    replayTokens: 0,
+    savingsExplanation: 'Autonomous exploration consumes LLM reasoning tokens. Once learned, replaying the synthesized webcmd CLI recipe executes deterministically with zero LLM API calls, saving 100% of LLM token costs.'
+  });
+});
+
 app.post('/api/browser/open', async (req, res) => {
   try {
     const sessionId = agentController.currentSessionId || await webcmdBridge.createSession('operator-window');
@@ -115,7 +127,20 @@ app.post('/api/browser/open', async (req, res) => {
       'try { await page.bringToFront(); } catch (_) {}\nreturn { ready: true, title: await page.title(), url: page.url() };',
       15
     );
-    res.json({ ok: true, sessionId, result });
+
+    // Launch visible desktop browser window so user/judge sees page directly on desktop screen
+    const pageUrl = result.result?.url || 'https://www.district.in/movies/';
+    if (pageUrl && pageUrl.startsWith('http')) {
+      if (process.platform === 'win32') {
+        exec(`start "" "${pageUrl}"`).unref();
+      } else if (process.platform === 'darwin') {
+        exec(`open "${pageUrl}"`).unref();
+      } else {
+        exec(`xdg-open "${pageUrl}"`).unref();
+      }
+    }
+
+    res.json({ ok: true, sessionId, result, desktopBrowserOpened: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }

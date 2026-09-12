@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import { agentController } from './src/agent.js';
 import { webcmdBridge } from './src/webcmdBridge.js';
 import { recipeManager } from './src/recipeManager.js';
+import { assertSafeString, validateNavigationUrl } from './src/codeSandbox.js';
 
 dotenv.config();
 
@@ -74,8 +75,14 @@ app.get('/api/memory', async (req, res) => {
   if (!url) {
     return res.status(400).json({ error: 'url parameter is required' });
   }
-  const memory = await webcmdBridge.getSiteMemoryContext(url);
-  res.json(memory);
+  try {
+    assertSafeString(url, { maxLen: 2048, field: 'URL' });
+    await validateNavigationUrl(url);
+    const memory = await webcmdBridge.getSiteMemoryContext(url);
+    res.json(memory);
+  } catch (err) {
+    res.status(400).json({ error: err.message, blocked: true });
+  }
 });
 
 app.post('/api/action/approve', (req, res) => {

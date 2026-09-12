@@ -12,6 +12,7 @@ import { runJobApplicationMatcher } from './workflows/jobApplicationMatcher.js';
 import { runTicketFinder } from './workflows/ticketFinder.js';
 import { runExecutiveBriefing } from './workflows/executiveBriefing.js';
 import { recipeManager } from './recipeManager.js';
+import { validateNavigationUrl } from './codeSandbox.js';
 
 export class AgentController {
   constructor() {
@@ -19,6 +20,15 @@ export class AgentController {
     this.isRunning = false;
     this.activeTask = null;
     this.eventListeners = new Set();
+
+    // Wire security violations directly to event listeners and WebSocket relay
+    webcmdBridge.on('security_block', (event) => {
+      this.emit('security_block', event);
+      this.emit('log', {
+        type: 'error',
+        message: `🛡️ SECURITY POLICY VIOLATION: ${event.reason}`
+      });
+    });
   }
 
   onEvent(listener) {
@@ -52,6 +62,23 @@ export class AgentController {
     this.emit('status_change', { status: 'RUNNING', workflow });
 
     try {
+      // Validate initial target URL against SSRF / scheme policies
+      if (params.url && params.url.trim()) {
+        try {
+          await validateNavigationUrl(params.url.trim());
+        } catch (secErr) {
+          this.emit('security_block', {
+            reason: secErr.message,
+            snippet: params.url,
+            sessionId: null,
+            timestamp: new Date().toISOString()
+          });
+          this.isRunning = false;
+          this.emit('status_change', { status: 'IDLE', workflow });
+          return { success: false, blocked: true, error: secErr.message };
+        }
+      }
+
       // Rotate previous session if starting a new mission
       if (this.currentSessionId) {
         await webcmdBridge.closeSession(this.currentSessionId).catch(() => {});

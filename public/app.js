@@ -339,6 +339,10 @@ class AgentDashboard {
         this.appendLog(msg.type, msg.message, msg.timestamp);
         break;
 
+      case 'security_block':
+        this.appendLog('error', `🛡️ SECURITY POLICY BLOCK: ${msg.reason || 'Blocked by code execution sandbox'}`, msg.timestamp);
+        break;
+
       case 'step_start':
         this.appendLog('info', `Step ${msg.step}: ${msg.title}`, msg.timestamp);
         break;

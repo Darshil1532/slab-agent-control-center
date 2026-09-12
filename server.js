@@ -217,7 +217,16 @@ ${daemonStatusLine}
   });
 }
 
-start().catch(err => {
-  console.error('Fatal initialization error:', err);
-  process.exit(1);
-});
+const isDirectRun = process.argv[1] && (
+  process.argv[1] === fileURLToPath(import.meta.url) ||
+  process.argv[1].endsWith('server.js')
+);
+
+if (isDirectRun) {
+  start().catch(err => {
+    console.error('Fatal initialization error:', err);
+    process.exit(1);
+  });
+}
+
+export { app, server, start };

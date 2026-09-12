@@ -51,6 +51,31 @@ export class AgentController {
         console.error('Error in event listener:', err);
       }
     }
+
+    // Trigger visual screen capture whenever a step finishes executing
+    if (type === 'step_executed' && this.currentSessionId) {
+      this.captureLiveView().catch(() => {});
+    }
+  }
+
+  /**
+   * Capture real-time visual screen from Cloak Chromium and emit screen_snapshot
+   */
+  async captureLiveView() {
+    if (!this.currentSessionId) return null;
+    try {
+      const snap = await webcmdBridge.captureScreenshot(this.currentSessionId);
+      if (snap.ok && snap.dataUrl) {
+        this.emit('screen_snapshot', {
+          image: snap.dataUrl,
+          url: snap.url,
+          title: snap.title,
+          sessionId: this.currentSessionId
+        });
+        return snap;
+      }
+    } catch (_) {}
+    return null;
   }
 
   async startMission({ workflow, params = {} }) {
@@ -104,6 +129,7 @@ export class AgentController {
       this.emit('log', { type: 'system', message: '🖥️ Launching separate Cloak Chromium window on screen...' });
       await webcmdBridge.runScript(this.currentSessionId, 'try { await page.bringToFront(); } catch (_) {}\nreturn { ready: true };', 15).catch(() => {});
       this.emit('log', { type: 'system', message: '✅ Cloak Chromium window active and connected.' });
+      await this.captureLiveView().catch(() => {});
 
       const context = {
         sessionId: this.currentSessionId,

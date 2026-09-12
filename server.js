@@ -121,6 +121,22 @@ app.post('/api/browser/open', async (req, res) => {
   }
 });
 
+app.get('/api/browser/screen', async (req, res) => {
+  try {
+    const sessionId = agentController.currentSessionId || req.query.sessionId;
+    if (!sessionId) {
+      return res.status(404).json({ ok: false, error: 'No active browser session' });
+    }
+    const snap = await webcmdBridge.captureScreenshot(sessionId);
+    if (snap.ok) {
+      return res.json(snap);
+    }
+    return res.status(500).json(snap);
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // WebSocket Handling
 wss.on('connection', ws => {
   console.log('📡 Dashboard client connected to WebSocket.');

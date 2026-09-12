@@ -34,7 +34,7 @@ export class WebcmdBridge extends EventEmitter {
       const maxBuffer = options.maxBuffer || this.maxBufferBytes;
       const child = spawn('webcmd', args, {
         env: { ...process.env, WEBCMD_WINDOW: 'foreground', ...options.env },
-        windowsHide: true,
+        windowsHide: false,
         ...options
       });
 

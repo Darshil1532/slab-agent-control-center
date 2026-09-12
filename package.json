@@ -15,7 +15,9 @@
     "test:github": "node tests/test_github_deep_dive.js",
     "test:jobs": "node tests/test_job_matcher.js",
     "test:briefing": "node tests/test_executive_briefing.js",
-    "clean:cloak": "node scripts/kill_cloak.js"
+    "clean:cloak": "node scripts/kill_cloak.js",
+    "open:browser": "node scripts/open_browser.js",
+    "status:cloak": "node scripts/status_cloak.js"
   },
   "dependencies": {
     "acorn": "^8.18.0",

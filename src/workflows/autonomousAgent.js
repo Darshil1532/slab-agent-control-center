@@ -29,10 +29,9 @@ export async function runAutonomousAgent({
 
   const MAX_STEPS = 8;
   let currentStep = stepsHistory.length > 0 ? stepsHistory.length + 1 : 1;
-  let isComplete = false;
   let finalOutcome = null;
 
-  for (let iter = 0; iter < MAX_STEPS && !isComplete; iter++, currentStep++) {
+  for (let iter = 0; iter < MAX_STEPS; iter++, currentStep++) {
     emit('step_start', { step: currentStep, title: `Inspecting page state & determining next action` });
 
     // 1. Observe: Extract live DOM state, clickable elements, inputs, and captcha indicators
@@ -174,7 +173,6 @@ export async function runAutonomousAgent({
         type: 'success',
         message: `🎵 Video playback active in live Chromium: "${pageState.title}". Mission goal achieved!`
       });
-      isComplete = true;
       finalOutcome = {
         title: pageState.title,
         pageUrl: pageState.url,
@@ -249,7 +247,6 @@ Return JSON matching this schema:
     });
 
     if (decision.isComplete || decision.action === 'done') {
-      isComplete = true;
       finalOutcome = {
         title: pageState.title,
         pageUrl: pageState.url,
@@ -484,7 +481,6 @@ Return JSON matching this schema:
           }
         }
 
-        isComplete = true;
         finalOutcome = {
           title: submitRes.result?.newTitle || pageState.title,
           pageUrl: submitRes.result?.newUrl || pageState.url,

@@ -581,7 +581,7 @@ Format with pure, clean GitHub-flavored markdown with emojis, formatted tables, 
     false
   );
 
-  let unforcedMarkdown = '';
+  let unforcedMarkdown;
   if (typeof rawGeminiResponse === 'string') {
     unforcedMarkdown = rawGeminiResponse.trim();
   } else if (rawGeminiResponse?.markdown) {

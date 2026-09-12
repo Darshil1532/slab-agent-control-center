@@ -1,10 +1,6 @@
 import { webcmdBridge } from './webcmdBridge.js';
 import { hitlGuard } from './hitlGuard.js';
 import { geminiClient } from './geminiClient.js';
-import { runEcommerceShopper } from './workflows/ecommerceShopper.js';
-import { runJobTracker } from './workflows/jobTracker.js';
-import { runNewsResearch } from './workflows/newsResearch.js';
-import { runCustomGoal } from './workflows/customRunner.js';
 import { runUniversalGoal } from './workflows/universalEngine.js';
 import { runGithubDeepDiver } from './workflows/githubDeepDiver.js';
 import { runPriceArbitrage } from './workflows/priceArbitrage.js';

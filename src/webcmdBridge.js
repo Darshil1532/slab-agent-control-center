@@ -416,26 +416,6 @@ return {
       fs.unlink(filepath).catch(() => {});
     }
   }
-
-  /**
-   * Capture screenshot as base64 from current page.
-   */
-  async captureScreenshot(sessionId) {
-    assertSafeString(sessionId, { maxLen: 128, field: 'Session ID' });
-    const script = `
-      try {
-        const buf = await page.screenshot({ type: 'jpeg', quality: 65 });
-        return { screenshot: buf.toString('base64'), format: 'image/jpeg' };
-      } catch (e) {
-        return { screenshot: null, error: e.message };
-      }
-    `;
-    const result = await this.runScript(sessionId, script, 15);
-    if (result && result.result && result.result.screenshot) {
-      return result.result.screenshot;
-    }
-    return null;
-  }
 }
 
 export const webcmdBridge = new WebcmdBridge();

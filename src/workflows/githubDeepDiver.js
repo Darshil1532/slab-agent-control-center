@@ -75,7 +75,7 @@ export async function runGithubDeepDiver({
         if (searchItem) return { title: searchItem.innerText.trim(), href: searchItem.href };
 
         // Fallback to any repo link
-        const anyRepo = Array.from(document.querySelectorAll('a[href*="/"]')).find(a => /^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(a.innerText.trim()));
+        const anyRepo = Array.from(document.querySelectorAll('a[href*="/"]')).find(a => /^[a-zA-Z0-9_-]+\\/[a-zA-Z0-9_.-]+$/.test(a.innerText.trim()));
         if (anyRepo) return { title: anyRepo.innerText.trim(), href: anyRepo.href };
 
         return null;

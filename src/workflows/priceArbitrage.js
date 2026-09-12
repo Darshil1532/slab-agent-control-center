@@ -369,7 +369,7 @@ Return JSON: { "query": "Sony WH-1000XM4" }`;
 
         const priceMatch = text.match(/₹[0-9,]+/);
         const priceText = priceMatch ? priceMatch[0].replace(/[^0-9]/g, '') : '';
-        const ratingMatch = text.match(/([0-9.]+)\s*★/);
+        const ratingMatch = text.match(/([0-9.]+)\\s*★/);
         const rating = ratingMatch ? ratingMatch[1] + ' ★' : '';
 
         if (title && href) {
@@ -693,7 +693,7 @@ Format with pure, clean GitHub-flavored markdown with emojis, formatted tables, 
     false
   );
 
-  let unforcedMarkdown = '';
+  let unforcedMarkdown;
   if (typeof rawGeminiResponse === 'string') {
     unforcedMarkdown = rawGeminiResponse.trim();
   } else if (rawGeminiResponse?.markdown) {

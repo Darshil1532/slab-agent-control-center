@@ -58,7 +58,7 @@ export async function runJobApplicationMatcher({
         const titleEl = row.querySelector('.titleline a, h2 a, a.job-title, a[href*="item?id="]');
         const siteEl = row.querySelector('.sitebit a, span.company, .company-name');
         const title = titleEl ? titleEl.innerText.trim() : '';
-        const company = siteEl ? siteEl.innerText.replace(/[\(\)]/g, '').trim() : title.split(/is hiring|seeks|looking for/i)[0].trim();
+        const company = siteEl ? siteEl.innerText.replace(/[()]/g, '').trim() : title.split(/is hiring|seeks|looking for/i)[0].trim();
         const link = titleEl ? titleEl.href : '';
 
         if (title && title.length > 5) {

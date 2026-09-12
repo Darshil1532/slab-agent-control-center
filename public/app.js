@@ -325,8 +325,11 @@ class AgentDashboard {
     if (existingRenderArea) existingRenderArea.innerHTML = '';
     if (this.els.emptySummaryState) this.els.emptySummaryState.style.display = 'flex';
 
-    // Switch to feed tab during execution so user sees live events
-    this.switchToTab('tab-feed');
+    // Switch to live viewport tab during execution so user sees real-time browser actions
+    this.switchToTab('tab-screen');
+    if (this.els.viewportActionText) {
+      this.els.viewportActionText.innerText = 'Initializing Cloak Chromium session & navigating...';
+    }
 
     this.send({
       action: 'start',

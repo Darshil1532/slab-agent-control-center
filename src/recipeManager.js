@@ -1,10 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import spawn from 'cross-spawn';
+import { assertSafeString, validateNavigationUrl } from './codeSandbox.js';
 
-const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const RECIPES_DIR = path.join(__dirname, '..', 'recipes');
@@ -47,8 +46,22 @@ export class RecipeManager {
     // Register with webcmd site endpoint if applicable
     if (recipeData.targetUrl) {
       try {
-        await execAsync(`webcmd site endpoint set "${domain}" "${cleanAction}" --url "${recipeData.targetUrl}" --method GET`).catch(() => {});
-      } catch (e) {}
+        assertSafeString(cleanDomain, { maxLen: 128, field: 'Domain' });
+        assertSafeString(cleanAction, { maxLen: 128, field: 'Action' });
+        await validateNavigationUrl(recipeData.targetUrl);
+
+        await new Promise((resolve) => {
+          const child = spawn('webcmd', [
+            'site', 'endpoint', 'set', cleanDomain, cleanAction,
+            '--url', recipeData.targetUrl,
+            '--method', 'GET'
+          ], { windowsHide: true });
+          child.on('close', resolve);
+          child.on('error', resolve);
+        });
+      } catch (e) {
+        console.warn('Endpoint registration warning:', e.message);
+      }
     }
 
     return record;
